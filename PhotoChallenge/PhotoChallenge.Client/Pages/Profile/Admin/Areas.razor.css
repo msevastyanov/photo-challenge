@@ -1,0 +1,17 @@
+﻿.new-area-item {
+    color: #c6c6c6 !important;
+    background-color: #d9d9d92e;
+    border: 5px solid #ffffff14;
+    border-radius: 2px;
+    height: 100px;
+    text-align: center;
+    line-height: 90px;
+    font-size: 1.2em;
+    transition: 0.2s;
+}
+
+    .new-area-item:hover {
+        color: #fff !important;
+        border: 5px solid #ffffff2e;
+        transition: 0.2s;
+    }

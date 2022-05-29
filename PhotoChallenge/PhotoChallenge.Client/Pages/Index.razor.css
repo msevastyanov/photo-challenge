@@ -1,0 +1,33 @@
+﻿.main-title {
+    color: #fff;
+    font-size: 4em;
+    outline: none;
+}
+
+@media (max-width: 1000px) {
+    .main-title {
+        font-size: 3.5em;
+    }
+}
+
+@media (max-width: 450px) {
+    .main-title {
+        font-size: 3em;
+    }
+}
+
+@media (max-width: 400px) {
+    .main-title {
+        font-size: 2.5em;
+    }
+}
+
+@media (max-width: 991px) {
+    .main-title {
+        text-align: center;
+    }
+
+    .challenges-column {
+        height: calc(100% - 80px);
+    }
+}

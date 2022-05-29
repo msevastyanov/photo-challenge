@@ -1,0 +1,25 @@
+﻿@using PhotoChallenge.Domain.DTO.Challenge
+
+<NavLink href=@{
+    $"/admin/challenges/{@Challenge.Id}"
+}>
+    <div class="challenge_item">
+        <span class="challenge_item-status status-@Challenge.CurrentStatus.ToLower()">
+            @Challenge.CurrentStatus
+        </span>
+        <div class="challenge_item-period">
+            @Challenge.DateStart.ToString("dd.MM.yyyy") – @Challenge.DateEnd.ToString("dd.MM.yyyy")
+        </div>
+        <span class="challenge_item-award award-@Challenge.Award.ToString().ToLower()">
+            @((int) Challenge.Award)
+        </span>
+        <div class="challenge_item-description">
+            @Challenge.AreaName: @Challenge.Description
+        </div>
+    </div>
+</NavLink>
+
+@code {
+    [Parameter] public ChallengeDto Challenge { get; set; }
+
+}

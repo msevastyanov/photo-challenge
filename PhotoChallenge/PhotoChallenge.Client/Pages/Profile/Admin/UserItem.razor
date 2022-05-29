@@ -1,0 +1,82 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.User
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<div class="user">
+    <div class="row">
+        <div class="col-md-8">
+            <p class="user-name">
+                @User.Username
+            </p>
+            @if (!string.IsNullOrEmpty(errorMsg))
+            {
+                <p class="error-msg align-left">
+                    @errorMsg
+                </p>
+            }
+        </div>
+        <div class="col-md-4 align-right">
+            <EditForm EditContext="@editContext">
+                <InputSelect id="role" class="form-control" @bind-Value="ChangeRoleDto.Role">
+                    @foreach (var role in roles)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </InputSelect>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public UserDto User { get; set; }
+    private EditContext editContext;
+    private ChangeUserRoleDto ChangeRoleDto;
+    private string errorMsg = string.Empty;
+    private List<string> roles = new List<string>
+    {
+        "User", "Moderator"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ChangeRoleDto = new ChangeUserRoleDto
+            {
+                UserId = User?.UserId,
+                Role = User?.Role
+            };
+        editContext = new EditContext(ChangeRoleDto);
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        HandleValidSubmit();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync<ChangeUserRoleDto>("api/user/role", ChangeRoleDto);
+
+            if (!response.IsSuccessStatusCode)
+                SetError(await ResponseHelper.GetErrorMessageFromResponseAsync(response));
+            else
+                User.Role = ChangeRoleDto.Role;
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    
+    private void SetError(string error)
+    {
+        errorMsg = error;
+        StateHasChanged();
+    }
+}

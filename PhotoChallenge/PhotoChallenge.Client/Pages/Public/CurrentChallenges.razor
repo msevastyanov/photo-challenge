@@ -1,0 +1,40 @@
+﻿@using PhotoChallenge.Domain.DTO.Challenge
+@using static System.Net.WebRequestMethods
+@inject IHttpClientFactory ClientFactory
+
+<SwitchArea SetSelectedArea="@SetSelectedArea" />
+
+<div class="current_challenges scrolling">
+    @{
+        var actualChallenges = challenges.Where(_ => _.AreaId == selectedAreaId && _.CurrentStatus == "Actual");
+    }
+    @if (!actualChallenges.Any())
+    {
+        <p class="page-msg">There're no actual challenges</p>
+    }
+    @foreach (var challenge in actualChallenges.OrderByDescending(_ => (int)_.Award))
+    {
+        <div class="challenge-wrapper">
+            <ActualChallengeItem Challenge="challenge" />
+        </div>
+    }
+</div>
+
+
+@code {
+    private int selectedAreaId;
+    private List<ChallengeDto> challenges = new List<ChallengeDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("public");
+        challenges = await client.GetFromJsonAsync<List<ChallengeDto>>("api/challenge/live") ?? new List<ChallengeDto>();
+        Console.WriteLine(challenges.Count);
+    }
+
+    private void SetSelectedArea(int areaId)
+    {
+        selectedAreaId = areaId;
+        StateHasChanged();
+    }
+}

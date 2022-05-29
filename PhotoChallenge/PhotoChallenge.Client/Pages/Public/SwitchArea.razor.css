@@ -1,0 +1,56 @@
+﻿.switch_area {
+    position: relative;
+    z-index: 1;
+}
+
+.switch_area-header {
+    color: #ddd;
+    cursor: pointer;
+    border-color: #5d5d5d;
+    border-radius: 2px;
+    background-color: #2e2e2e38;
+    border: 1px solid #5a5a5a;
+    padding: 5px 12px;
+    text-transform: uppercase;
+    transition: 0.2s;
+}
+
+    .switch_area-header:hover {
+        color: #fff;
+        background-color: #2e2e2e61;
+        transition: 0.2s;
+    }
+
+    .switch_area-header.opened-true {
+        color: #fff;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+.switch_area-options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background-color: #2e2e2e38;
+    padding: 5px 0;
+    border-left: 1px solid #5a5a5a;
+    border-right: 1px solid #5a5a5a;
+    border-bottom: 1px solid #5a5a5a;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+.switch_area-option {
+    padding: 2px 12px;
+    color: #a9a9a9;
+    transition: 0.2s;
+    cursor: pointer;
+    background-color: #262626f2;
+}
+
+    .switch_area-option:hover {
+        color: #fff;
+        transition: 0.2s;
+    }

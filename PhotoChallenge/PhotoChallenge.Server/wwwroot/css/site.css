@@ -1,0 +1,238 @@
+﻿html, body {
+    position: relative;
+    height: 100%;
+    min-height: 100%;
+    /*font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;*/
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    color: #d9d9d9;
+}
+
+a {
+    box-shadow: none !important;
+}
+
+#app {
+    height: 100%;
+    background-image: url(/images/bg.jpg);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.nav-item {
+    margin: 0 10px;
+}
+
+.nav-link {
+    color: #c6c6c6 !important;
+    transition: 0.2s;
+}
+
+    .nav-link:hover {
+        color: #fff !important;
+        transition: 0.2s;
+    }
+
+#bg-filter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #191a20c4;
+}
+
+.navbar-toggler {
+    border-radius: 2px;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.mobile-navbar-wrapper {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.mobile-navbar {
+    display: flex;
+}
+
+    .mobile-navbar > .nav-link {
+        font-size: 1.1em;
+    }
+
+@media (min-width: 992px) {
+    .mobile-navbar-wrapper {
+        display: none;
+    }
+}
+
+#main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.align-center {
+    text-align: center;
+}
+
+.align-left {
+    text-align: left;
+}
+
+.account-menu {
+    margin-bottom: 15px;
+}
+
+@media (max-width: 576px) {
+    .extra-small-hide {
+        display: none;
+    }
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: #aba9ad;
+    font-size: 0.8em;
+    overflow: hidden;
+}
+
+    .footer > div {
+        padding: 10px 15px;
+    }
+
+.account-title {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+    .account-title > span {
+        position: relative;
+    }
+
+        .account-title > span:after {
+            content: "";
+            width: 100%;
+            height: 0.25em;
+            background: #1b9b9b9c url(http://www.gentleface.com/i/free_toolbar_icons_16x16_black.png) no-repeat -1000px -1000px fixed;
+            bottom: 0;
+            left: 0;
+            position: absolute;
+            display: inline-block;
+        }
+
+.account-title-2 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.form {
+    padding: 10px;
+    background-color: #d9d9d92e;
+    border-radius: 3px;
+}
+
+.form-control {
+    border-radius: 1px;
+    margin-bottom: 10px;
+    outline: none;
+    box-shadow: none !important;
+}
+
+.form-label {
+    color: #383838;
+}
+
+.form-actions {
+    text-align: right;
+}
+
+.btn {
+    text-align: right;
+    border: none !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+    padding: 7px 20px;
+    text-transform: uppercase;
+    transition: 0.1s;
+}
+
+    .btn:hover {
+        transition: 0.1s;
+    }
+
+.nav-link.btn {
+    text-transform: initial;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: #1b9b9b9c;
+    border-radius: 2px;
+}
+
+.form-btn {
+    padding: 7px 30px;
+}
+
+.btn-primary {
+    background-color: #1b9b9b !important;
+}
+
+    .btn-primary:hover {
+        background-color: #1a8d8d !important;
+    }
+
+.alert-success {
+    color: #56fdaf;
+    background-color: initial !important;
+    border: none !important;
+}
+
+.alert {
+    padding: 10px;
+}
+
+.alert-dismissible .btn-close {
+    padding: 12px;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.text-danger {
+    color: #ed5361 !important;
+}
+
+.checkbox .form-label {
+    color: #e1e1e1;
+    line-height: 32px;
+    cursor: pointer;
+}
+
+.checkbox .form-check-input {
+    border-radius: 2px;
+    height: 25px;
+    width: 25px;
+    margin-right: 3px;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+
+.form-check-input:checked {
+    background-color: #1b9b9b;
+    border-color: #1b9b9b;
+}

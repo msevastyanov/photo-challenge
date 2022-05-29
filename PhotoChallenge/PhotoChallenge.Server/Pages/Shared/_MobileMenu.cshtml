@@ -1,0 +1,55 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using PhotoChallenge.Domain.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    var returnUrl = "/";
+    if (Context.Request.Query.TryGetValue("returnUrl", out var existingUrl))
+    {
+        returnUrl = existingUrl;
+    }
+}
+
+<div class="mobile-navbar-wrapper">
+    <div class="mobile-navbar mobile-navbar-left">
+        <a class="nav-link" href="/">
+            <i class="fas fa-home"></i>
+        </a>
+        <a class="nav-link" href="/challenges">
+            <i class="fas fa-camera"></i>
+        </a>
+        <a class="nav-link" href="/about">
+            <i class="fas fa-info"></i>
+        </a>
+    </div>
+    <div class="mobile-navbar mobile-navbar-right">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a class="nav-link" href="/profile/me" title="My profile">
+                <i class="fas fa-user"></i>
+            </a>
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+                <i class="fas fa-cog"></i>
+            </a>
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post">
+                <button type="submit" class="nav-link btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
+        }
+        else
+        {
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register" asp-route-returnUrl="@returnUrl">
+                <i class="fas fa-user-plus"></i>
+            </a>
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">
+                <i class="fas fa-sign-in-alt"></i>
+            </a>
+        }
+    </div>
+</div>
+
+@{
+}

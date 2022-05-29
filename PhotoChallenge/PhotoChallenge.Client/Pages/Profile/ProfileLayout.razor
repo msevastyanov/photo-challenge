@@ -1,0 +1,16 @@
+﻿@inherits LayoutComponentBase
+@layout MainLayout
+
+<div class="row columns-height columns-height-md height-without-header profile-main-row">
+    <div class="col-xxl-2 offset-xxl-1 col-xl-3 offset-xl-0 col-md-4 offset-md-0">
+        <MobileProfileMenu />
+        <ProfileMenu />
+    </div>
+    <div class="col-xxl-8 col-xl-9 col-md-8 profile-right-column">
+        @Body
+    </div>
+</div>
+
+@code {
+
+}

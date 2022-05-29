@@ -1,0 +1,23 @@
+﻿.current_challenges {
+    margin-top: 50px;
+    max-height: calc(100% - 100px);
+    overflow-y: scroll;
+}
+
+    .challenge-wrapper:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
+@media (max-width: 991px) {
+    .current_challenges {
+        margin-top: 20px;
+        max-height: calc(100% - 20px);
+    }
+}
+
+
+@media (max-width: 576px) {
+    .current_challenges {
+        margin-top: 20px;
+    }
+}

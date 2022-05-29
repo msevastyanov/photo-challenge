@@ -1,0 +1,56 @@
+﻿@page "/challenges"
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Domain.DTO.Challenge
+@using static System.Net.WebRequestMethods
+@inject IHttpClientFactory ClientFactory
+
+<PageTitle>
+    All Challenges | PhotoChallenge
+</PageTitle>
+
+<h1 class="page-title">
+    <span>
+        All challenges
+    </span>
+</h1>
+
+<div class="page-scrolling-area scrolling">
+    <div class="row">
+        <div class="col-xl-10 offset-xl-1 col-lg-12 offset-lg-0">
+            <div class="row g-2">
+                @{
+                    var allChallenges = challenges.Where(challenge => selectedAreaId == 0 ? true : challenge.AreaId == selectedAreaId);
+                }
+                @if (!allChallenges.Any())
+                {
+                    <p class="page-msg">There're no challenges</p>
+                }
+                @foreach (var challenge in challenges.Where(challenge => selectedAreaId == 0 ? true : challenge.AreaId == selectedAreaId).OrderByDescending(_ => _.DateEnd))
+                {
+                    <div class="col-xl-4 col-lg-4 col-md-6">
+                        <ActualChallengeItem Challenge="challenge" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private int selectedAreaId = 0;
+    private List<ChallengeDto> challenges = new List<ChallengeDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = ClientFactory.CreateClient("public");
+        challenges = await client.GetFromJsonAsync<List<ChallengeDto>>("api/challenge/live") ?? new List<ChallengeDto>();
+    }
+
+    private void SetSelectedArea(int areaId)
+    {
+        selectedAreaId = areaId;
+        StateHasChanged();
+    }
+}

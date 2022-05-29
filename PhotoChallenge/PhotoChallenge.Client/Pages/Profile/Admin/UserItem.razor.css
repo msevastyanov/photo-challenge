@@ -1,0 +1,13 @@
+﻿.user {
+    color: #c6c6c6 !important;
+    background-color: #d9d9d92e;
+    border: 5px solid #ffffff14;
+    border-radius: 2px;
+    margin-bottom: 5px;
+    padding: 10px;
+}
+
+.user-name {
+    margin: 0;
+    font-size: 1.1em;
+}

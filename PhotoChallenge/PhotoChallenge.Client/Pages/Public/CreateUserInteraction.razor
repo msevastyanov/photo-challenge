@@ -1,0 +1,132 @@
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.Challenge
+@using PhotoChallenge.Domain.DTO.UserInteraction
+@using System.Net.Http.Headers
+@inject HttpClient Http
+
+<div class="modal fade" id="@ModalId" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <AuthorizeView>
+                    <Authorized>
+                        <h5 class="modal-title">
+                            @Challenge.AreaName: @Challenge.Description
+                        </h5>
+                    </Authorized>
+                    <NotAuthorized>
+                        <h5 class="modal-title">
+                            You're not authorized
+                        </h5>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+            <div class="modal-body">
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="file-upload">
+                            <label for="file-upload-@ModalId" class="file-upload-label">
+                                Upload photo
+                            </label>
+                            <InputFile OnChange="@LoadFiles" id="@($"file-upload-{ModalId}")" multiple class="file-upload-input" />
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+                @if (!string.IsNullOrEmpty(errorMsg))
+                {
+                    <p class="msg error-msg">
+                        @errorMsg
+                    </p>
+                }
+                @if (!string.IsNullOrEmpty(successMsg))
+                {
+                    <p class="msg success-msg">
+                        @successMsg
+                    </p>
+                }
+            </div>
+            <div class="modal-footer">
+                <AuthorizeView>
+                    <Authorized>
+                        <button type="button" class="btn btn-primary" @onclick="UploadPhoto">Send photo</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="authentication/login" class="btn btn-primary">Log in</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ChallengeDto Challenge { get; set; }
+    [Parameter] public string ModalId { get; set; }
+    private CreateUserInteractionDto createInteraction { get; set; }
+    private string errorMsg = string.Empty;
+    private string successMsg = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            createInteraction = new CreateUserInteractionDto
+                {
+                    ChallengeId = Challenge.Id
+                };
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            errorMsg = string.Empty;
+            successMsg = string.Empty;
+            var file = e.File;
+            var contentType = file.ContentType;
+
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream(209715200).ReadAsync(buffer);
+
+            var fileDto = new UploadFileDto
+                {
+                    Name = file.Name,
+                    Content = Convert.ToBase64String(buffer),
+                    Type = contentType.Contains('/') ? contentType.Substring(contentType.LastIndexOf('/') + 1) : contentType
+                };
+
+            var response = await Http.PostAsJsonAsync("api/file", fileDto);
+
+            if (!response.IsSuccessStatusCode)
+                errorMsg = await ResponseHelper.GetErrorMessageFromResponseAsync(response);
+            else {
+                createInteraction.FileName = await response.Content.ReadAsStringAsync();
+                successMsg = $"Uploaded file: {createInteraction.FileName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMsg = ex.Message;
+        }
+    }
+
+    private async Task UploadPhoto()
+    {
+        errorMsg = string.Empty;
+        successMsg = string.Empty;
+
+        var response = await Http.PostAsJsonAsync("api/interaction", createInteraction);
+
+        if (!response.IsSuccessStatusCode)
+            errorMsg = await ResponseHelper.GetErrorMessageFromResponseAsync(response);
+        else
+            successMsg = "Thank you! Your application will be reviewed";
+    }
+}

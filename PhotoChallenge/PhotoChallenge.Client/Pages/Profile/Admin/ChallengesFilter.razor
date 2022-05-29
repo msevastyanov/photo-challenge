@@ -1,0 +1,104 @@
+﻿@using PhotoChallenge.Client.Models
+@using PhotoChallenge.Domain.DTO.Area
+@inject HttpClient Http
+
+<div class="filter">
+    <EditForm class="form filters-form" EditContext="@editContext">
+        <div class="filter-wrapper">
+            <div>
+                <div class="checkbox">
+                    <label for="isAll" class="form-label">
+                        <InputCheckbox id="isAll" class="form-check-input" @bind-Value="isAll" />
+                        All
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="draft" class="form-label">
+                        <InputCheckbox id="draft" class="form-check-input" @bind-Value="filter.IsDraft" />
+                        Draft
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="live" class="form-label">
+                        <InputCheckbox id="live" class="form-check-input" @bind-Value="filter.IsLive" />
+                        Live
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="actual" class="form-label">
+                        <InputCheckbox id="actual" class="form-check-input" @bind-Value="filter.IsActual" />
+                        Actual
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="expired" class="form-label">
+                        <InputCheckbox id="expired" class="form-check-input" @bind-Value="filter.IsExpired" />
+                        Expired
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="removed" class="form-label">
+                        <InputCheckbox id="removed" class="form-check-input" @bind-Value="filter.IsRemoved" />
+                        Removed
+                    </label>
+                </div>
+            </div>
+            <div>
+                <div class="form-floating">
+                    <InputSelect id="area" class="form-control" @bind-Value="filter.AreaId">
+                        <option value="0">All</option>
+                        @foreach (var area in areas)
+                        {
+                            <option value="@area.Id">@area.Name</option>
+                        }
+                    </InputSelect>
+                    <label for="area" class="form-label">Area</label>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public Action<ChallengesFilterModel> ChangeFilters { get; set; }
+    private List<AreaDto> areas = new List<AreaDto>();
+
+    private ChallengesFilterModel filter;
+    private EditContext editContext;
+    private bool isAll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAll = true;
+        filter = new ChallengesFilterModel
+            {
+                IsDraft = true,
+                IsLive = true,
+                IsActual = true,
+                IsExpired = true,
+                IsRemoved = true,
+                AreaId = 0
+            };
+        areas = await Http.GetFromJsonAsync<List<AreaDto>>("api/area") ?? new List<AreaDto>();
+        editContext = new EditContext(filter);
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        ChangeFilters.Invoke(filter);
+
+        if (e.FieldIdentifier.FieldName == "isAll")
+        {
+            filter.IsDraft = isAll;
+            filter.IsLive = isAll;
+            filter.IsActual = isAll;
+            filter.IsExpired = isAll;
+            filter.IsRemoved = isAll;
+        }
+        else
+        {
+            isAll = filter.IsDraft && filter.IsLive && filter.IsActual && filter.IsExpired && filter.IsRemoved;
+        }
+    }
+}

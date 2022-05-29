@@ -1,0 +1,66 @@
+﻿@page "/admin/users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Domain.DTO.User
+@layout ProfileLayout
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClient Http
+
+<h1 class="page-title">
+    <span>
+        Users
+    </span>
+</h1>
+
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div class="page-error-msg">
+        @errorMsg
+    </div>
+}
+
+<div class="profile-scrolling-area scrolling">
+    @foreach (var user in users.OrderBy(_ => _.Username))
+    {
+        <UserItem User="user" />
+    }
+</div>
+
+@code {
+    private List<UserDto> users = new List<UserDto>();
+    private string errorMsg = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            users = await Http.GetFromJsonAsync<List<UserDto>>("api/user/all") ?? new List<UserDto>();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    //private void DeleteArea(int id)
+    //{
+    //    var areaToDelete = areas.SingleOrDefault(_ => _.Id == id);
+
+    //    if (areaToDelete is null)
+    //    {
+    //        errorMsg = "Area is not found";
+    //        return;
+    //    }
+
+    //    errorMsg = string.Empty;
+
+    //    removedAreas.Add(id);
+    //    StateHasChanged();
+    //}
+
+    private void SetError(string error)
+    {
+        errorMsg = error;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,73 @@
+﻿@page "/admin/areas/{id}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Newtonsoft.Json
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.Area
+@using PhotoChallenge.Domain.Enums
+@using PhotoChallenge.Domain.Models
+@layout ProfileLayout
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h1 class="page-title">
+    <span>
+        @title
+    </span>
+</h1>
+
+<div class="col-md-8 offset-md-2">
+    @if (area != null)
+    {
+        <EditForm class="form" Model="@area" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-floating">
+                <InputText id="name" class="form-control" @bind-Value="area.Name" />
+                <label for="name" class="form-label">Name</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary form-btn">
+                    Save
+                </button>
+                <NavLink class="btn btn-secondary form-btn" href="/admin/areas">
+                    Back
+                </NavLink>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <p>
+            Loading data...
+        </p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    private AreaDto area;
+    private string title;
+    private string errorMsg = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        area = new AreaDto();
+        title = "New area";
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await Http.PostAsJsonAsync("api/area", area);
+
+        if (!response.IsSuccessStatusCode)
+            errorMsg = await ResponseHelper.GetErrorMessageFromResponseAsync(response);
+        else
+            NavigationManager.NavigateTo("/admin/areas");
+    }
+}

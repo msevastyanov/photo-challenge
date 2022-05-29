@@ -1,0 +1,41 @@
+﻿.modal-content {
+    color: #c6c6c6 !important;
+    background-color: #484848b5;
+    border: 5px solid #ffffff38;
+    border-radius: 2px;
+}
+
+.modal-header {
+    border-bottom: 0;
+}
+
+.modal-title {
+    font-size: 1em;
+}
+
+.modal-body {
+    text-align: center;
+}
+
+.modal-footer {
+    border-top: 0;
+}
+
+.file-upload-label {
+    border: 1px solid #8c8c8c;
+    display: inline-block;
+    cursor: pointer;
+    padding: 20px 40px;
+    border-radius: 5px;
+    transition: 0.2s;
+}
+
+    .file-upload-label:hover {
+        border: 1px solid #b0b0b0;
+        color: #fff;
+        transition: 0.2s;
+    }
+
+.msg {
+    margin: 20px 0 0;
+}

@@ -1,0 +1,17 @@
+﻿<footer class="footer">
+    <div class="row">
+        <div class="col-sm-4 align-left extra-small-hide">
+            Powered by .NET 6
+        </div>
+        <div class="col-sm-4 align-center">
+            &copy; PhotoChallenge, @currentDate
+        </div>
+        <div class="col-sm-4 align-right extra-small-hide">
+            Made by Mark Sevastyanov
+        </div>
+    </div>
+</footer>
+
+@code {
+    private int currentDate = DateTime.Now.Year;
+}

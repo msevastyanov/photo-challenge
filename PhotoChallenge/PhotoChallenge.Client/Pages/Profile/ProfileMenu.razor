@@ -1,0 +1,41 @@
+﻿<ul class="nav nav-pills flex-column profile-menu">
+    <li class="nav-item">
+        <NavLink class="nav-link" href="/profile/me">
+            Profile
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="/profile/challenges">
+            My challenges
+        </NavLink>
+    </li>
+    <AuthorizeView Roles="Moderator, Admin">
+        <hr />
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/challenges">
+                Challenges
+            </NavLink>
+        </li>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/interactions">
+                User interactions
+            </NavLink>
+        </li>
+    </AuthorizeView>
+    <AuthorizeView Roles="Admin">
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/users">
+                Users
+            </NavLink>
+        </li>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/areas">
+                Areas
+            </NavLink>
+        </li>
+    </AuthorizeView>
+</ul>
+
+@code {
+
+}

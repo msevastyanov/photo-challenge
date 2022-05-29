@@ -1,0 +1,126 @@
+﻿@page "/profile/me"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.Area
+@using PhotoChallenge.Domain.DTO.User
+@layout ProfileLayout
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (User != null)
+{
+    <h1 class="page-title">
+        <span>
+            My profile
+        </span>
+    </h1>
+
+    <div class="profile">
+        <div class="row">
+            <div class="col-6">
+                <p class="profile-username">
+                    @User.Username
+                </p>
+                <p class="profile-role">
+                    @User.Role
+                </p>
+                <p class="profile-challenges">
+                    Successful challenges: <span>@User.Challenges</span>
+                </p>
+                <div>
+                    @if (!string.IsNullOrEmpty(errorMsg))
+                    {
+                        <p class="error-msg">
+                            @errorMsg
+                        </p>
+                    }
+                    <EditForm EditContext="@editContext" OnValidSubmit="@HandleValidSubmit">
+                        <div class="form-floating">
+                            <InputSelect id="area" class="form-control" @bind-Value="UpdateUser.DefaultAreaId">
+                                <option value="0">None</option>
+                                @foreach (var area in areas)
+                                {
+                                <option value="@area.Id">@area.Name</option>
+                                }
+                        </InputSelect>
+                        <label for="area" class="form-label">Default area</label>
+                    </div>
+                    @if (UpdateUser.DefaultAreaId != User.DefaultAreaId && UpdateUser.DefaultAreaId != 0)
+                        {
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary form-btn">
+                                    Update
+                                </button>
+                            </div>
+                        }
+                    </EditForm>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="profile-award">
+                    <div class="profile-award-header">
+                        award
+                    </div>
+                    <div class="profile-award-content">
+                        @User.Award
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (loadFailed)
+{
+    <div class="page-error-msg">
+        Error getting a user data
+    </div>
+}
+else
+{
+    <p>
+        Loading data...
+    </p>
+}
+
+@code {
+    private UserDto User;
+    private UpdateUserDto UpdateUser;
+    private EditContext editContext;
+    private bool loadFailed = false;
+    private List<AreaDto> areas = new List<AreaDto>();
+    private string errorMsg = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            User = await Http.GetFromJsonAsync<UserDto>($"api/user");
+            UpdateUser = new UpdateUserDto
+                {
+                    DefaultAreaId = User?.DefaultAreaId ?? 0
+                };
+            areas = await Http.GetFromJsonAsync<List<AreaDto>>("api/area") ?? new List<AreaDto>();
+            editContext = new EditContext(UpdateUser);
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+        catch (Exception)
+        {
+            loadFailed = true;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await Http.PostAsJsonAsync<UpdateUserDto>("api/user", UpdateUser);
+
+        if (!response.IsSuccessStatusCode)
+            errorMsg = await ResponseHelper.GetErrorMessageFromResponseAsync(response);
+        else
+            User.DefaultAreaId = UpdateUser.DefaultAreaId;
+    }
+}

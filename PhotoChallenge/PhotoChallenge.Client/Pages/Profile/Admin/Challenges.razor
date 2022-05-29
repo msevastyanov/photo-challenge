@@ -1,0 +1,73 @@
+﻿@page "/admin/challenges"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Models
+@using PhotoChallenge.Client.Shared.Challenges
+@using PhotoChallenge.Domain.DTO.Challenge
+@using PhotoChallenge.Domain.Enums
+@layout ProfileLayout
+@attribute [Authorize(Roles = "Moderator, Admin")]
+@inject HttpClient Http
+
+<h1 class="page-title">
+    <span>
+        Challenges
+    </span>
+</h1>
+
+<ChallengesFilter ChangeFilters="@SetFilters" />
+
+<div class="profile-scrolling-area-with-filters scrolling">
+    <div class="row g-2">
+        <div class="col-xl-4 col-lg-6 col-md-12">
+            <NavLink href="/admin/challenges/new">
+                <div class="new-challenge-item">
+                    New challenge
+                </div>
+            </NavLink>
+        </div>
+        @foreach (var challenge in challenges.Where(_ =>
+        _.CurrentStatus == "Draft" && filter.IsDraft ||
+        _.CurrentStatus == "Live" && filter.IsLive ||
+        _.CurrentStatus == "Actual" && filter.IsActual ||
+        _.CurrentStatus == "Expired" && filter.IsExpired ||
+        _.CurrentStatus == "Removed" && filter.IsRemoved).Where(challenge => filter.AreaId == 0 ? true : challenge.AreaId == filter.AreaId).OrderByDescending(_ => _.DateEnd))
+        {
+            <div class="col-xl-4 col-lg-6 col-md-12">
+                <ChallengeItem Challenge="challenge" />
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<ChallengeDto> challenges = new List<ChallengeDto>();
+    private ChallengesFilterModel filter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            filter = new ChallengesFilterModel
+                {
+                    IsDraft = true,
+                    IsLive = true,
+                    IsActual = true,
+                    IsExpired = true,
+                    IsRemoved = true,
+                    AreaId = 0
+                };
+            challenges = await Http.GetFromJsonAsync<List<ChallengeDto>>("api/challenge") ?? new List<ChallengeDto>();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void SetFilters(ChallengesFilterModel newFilter)
+    {
+        filter = newFilter;
+        StateHasChanged();
+    }
+}

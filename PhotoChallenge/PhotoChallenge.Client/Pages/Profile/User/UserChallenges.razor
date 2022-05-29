@@ -1,0 +1,88 @@
+﻿@page "/profile/challenges"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Models
+@using PhotoChallenge.Domain.DTO.UserInteraction
+@using PhotoChallenge.Domain.Enums
+@layout ProfileLayout
+@attribute [Authorize]
+@inject HttpClient Http
+
+<h1 class="page-title">
+    <span>
+        My challenges
+    </span>
+</h1>
+
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div class="page-error-msg">
+        @errorMsg
+    </div>
+}
+
+<UserInteractionFilter ChangeFilters="@SetFilters" />
+
+<div class="profile-scrolling-area-with-filters scrolling">
+    @foreach (var interaction in interactions.Where(_ =>
+    _.Status == UserInteractionStatus.Pending && filter.IsPending ||
+    _.Status == UserInteractionStatus.Approved && filter.IsApproved ||
+    _.Status == UserInteractionStatus.Rejected && filter.IsRejected).Where(challenge => filter.AreaId == 0 ? true : challenge.AreaId == filter.AreaId).OrderByDescending(_ => _.Created))
+    {
+        <UserChallenge Interaction="@interaction" IsRemoved="@(removedInteractions.Contains(interaction.Id))" DeleteInteraction="@DeleteInteraction" SetError="@SetError" />
+    }
+</div>
+
+@code {
+    private List<UserInteractionDto> interactions = new List<UserInteractionDto>();
+    private UserInteractionFilterModel filter;
+    private string errorMsg = string.Empty;
+    private List<int> removedInteractions = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            filter = new UserInteractionFilterModel
+                {
+                    IsPending = true,
+                    IsApproved = true,
+                    IsRejected = true,
+                    AreaId = 0
+                };
+            interactions = await Http.GetFromJsonAsync<List<UserInteractionDto>>("api/interaction/my") ?? new List<UserInteractionDto>();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void DeleteInteraction(int id)
+    {
+        var interactionToDelete = interactions.SingleOrDefault(_ => _.Id == id);
+
+        if (interactionToDelete is null)
+        {
+            errorMsg = "Interaction is not found";
+            return;
+        }
+
+        errorMsg = string.Empty;
+
+        removedInteractions.Add(id);
+        StateHasChanged();
+    }
+
+    private void SetError(string error)
+    {
+        errorMsg = error;
+        StateHasChanged();
+    }
+
+    private void SetFilters(UserInteractionFilterModel newFilter)
+    {
+        filter = newFilter;
+        StateHasChanged();
+    }
+}

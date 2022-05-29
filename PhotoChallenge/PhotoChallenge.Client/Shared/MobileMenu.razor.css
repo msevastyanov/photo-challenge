@@ -1,0 +1,19 @@
+﻿.mobile-navbar-wrapper {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.mobile-navbar {
+    display: flex;
+}
+
+    .mobile-navbar > .nav-link {
+        font-size: 1.1em;
+    }
+
+@media (min-width: 992px) {
+    .mobile-navbar-wrapper {
+        display: none;
+    }
+}

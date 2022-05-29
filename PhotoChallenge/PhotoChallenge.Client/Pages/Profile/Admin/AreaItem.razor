@@ -1,0 +1,64 @@
+﻿@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.Area
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<div class="area_item">
+    <div class="area_item-name">
+        @Area.Name
+    </div>
+    @if (!IsRemoved)
+    {
+        <div class="area_item-actions">
+            @if (!isDeleteMode)
+            {
+                <a @onclick="@(e => isDeleteMode = true)" class="area_item-btn area_item-delete">
+                    Delete
+                </a>
+            }
+            else
+            {
+                <a @onclick="Delete" class="area_item-btn area_item-delete">
+                    Confirm deletion
+                </a>
+                <a @onclick="CancelDeleteion" class="area_item-btn area_item-cancel">
+                    Cancel
+                </a>
+            }
+        </div>
+    } 
+    else
+    {
+        <div class="removed">
+            Removed
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public AreaDto Area { get; set; }
+    [Parameter] public bool IsRemoved { get; set; }
+    [Parameter] public Action<int> DeleteArea { get; set; }
+    [Parameter] public Action<string> SetError { get; set; }
+    private bool isDeleteMode;
+    private string errorMsg = string.Empty;
+
+    private async Task Delete()
+    {
+        var response = await Http.PostAsync($"api/area/delete/{Area.Id}", null);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            SetError(await ResponseHelper.GetErrorMessageFromResponseAsync(response));
+        }
+        else
+            DeleteArea.Invoke(Area.Id);
+    }
+
+    private void CancelDeleteion()
+    {
+        isDeleteMode = false;
+        SetError(string.Empty);
+    }
+
+}

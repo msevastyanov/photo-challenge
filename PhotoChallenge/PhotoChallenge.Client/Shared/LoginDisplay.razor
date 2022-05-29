@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject NavigationManager Navigation
+@inject SignOutSessionStateManager SignOutManager
+
+<AuthorizeView>
+    <Authorized>
+        <ul class="navbar-nav d-flex mb-2 mb-lg-0">
+            <li class="nav-item">
+                <NavLink class="nav-link" href="profile/me">
+                    My profile
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <a href="authentication/profile" class="nav-link">Account settings</a>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link btn" @onclick="BeginSignOut">Log out</button>
+            </li>
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <ul class="navbar-nav d-flex mb-2 mb-lg-0">
+            <li class="nav-item">
+                <a href="authentication/register" class="nav-link">Register</a>
+            </li>
+            <li class="nav-item">
+                <a href="authentication/login" class="nav-link">Log in</a>
+            </li>
+        </ul>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task BeginSignOut(MouseEventArgs args)
+    {
+        await SignOutManager.SetSignOutState();
+        Navigation.NavigateTo("authentication/logout");
+    }
+}

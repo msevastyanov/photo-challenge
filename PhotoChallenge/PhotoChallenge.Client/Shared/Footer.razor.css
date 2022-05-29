@@ -1,0 +1,13 @@
+﻿.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: #aba9ad;
+    font-size: 0.8em;
+    overflow: hidden;
+}
+
+    .footer > div {
+        padding: 10px 15px;
+    }

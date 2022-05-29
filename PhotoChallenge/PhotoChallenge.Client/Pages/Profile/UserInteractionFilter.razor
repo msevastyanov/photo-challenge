@@ -1,0 +1,88 @@
+﻿@using PhotoChallenge.Client.Models
+@using PhotoChallenge.Domain.DTO.Area
+@inject HttpClient Http
+
+<div class="filter">
+    <EditForm class="form filters-form" EditContext="@editContext">
+        <div class="filter-wrapper">
+            <div>
+                <div class="checkbox">
+                    <label for="isAll" class="form-label">
+                        <InputCheckbox id="isAll" class="form-check-input" @bind-Value="isAll" />
+                        All
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="pending" class="form-label">
+                        <InputCheckbox id="pending" class="form-check-input" @bind-Value="filter.IsPending" />
+                        Pending
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="approved" class="form-label">
+                        <InputCheckbox id="approved" class="form-check-input" @bind-Value="filter.IsApproved" />
+                        Approved
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label for="rejected" class="form-label">
+                        <InputCheckbox id="rejected" class="form-check-input" @bind-Value="filter.IsRejected" />
+                        Rejected
+                    </label>
+                </div>
+            </div>
+            <div>
+                <div class="form-floating">
+                    <InputSelect id="area" class="form-control" @bind-Value="filter.AreaId">
+                        <option value="0">All</option>
+                        @foreach (var area in areas)
+                        {
+                            <option value="@area.Id">@area.Name</option>
+                        }
+                    </InputSelect>
+                    <label for="area" class="form-label">Area</label>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public Action<UserInteractionFilterModel> ChangeFilters { get; set; }
+    private List<AreaDto> areas = new List<AreaDto>();
+
+    private UserInteractionFilterModel filter;
+    private EditContext editContext;
+    private bool isAll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAll = true;
+        filter = new UserInteractionFilterModel
+            {
+                IsPending = true,
+                IsApproved = true,
+                IsRejected = true,
+                AreaId = 0
+            };
+        areas = await Http.GetFromJsonAsync<List<AreaDto>>("api/area") ?? new List<AreaDto>();
+        editContext = new EditContext(filter);
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        ChangeFilters.Invoke(filter);
+
+        if (e.FieldIdentifier.FieldName == "isAll")
+        {
+            filter.IsPending = isAll;
+            filter.IsApproved = isAll;
+            filter.IsRejected = isAll;
+        }
+        else
+        {
+            isAll = filter.IsPending && filter.IsApproved && filter.IsRejected;
+        }
+    }
+}

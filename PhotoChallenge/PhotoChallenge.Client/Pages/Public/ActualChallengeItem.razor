@@ -1,0 +1,43 @@
+﻿@using PhotoChallenge.Domain.DTO.Challenge
+
+<div class="challenge" data-bs-toggle="modal" data-bs-target="#interaction-modal-@Challenge.Id">
+    <div class="challenge-period">
+        @Challenge.DateStart.ToString("dd.MM.yyyy") – @Challenge.DateEnd.ToString("dd.MM.yyyy") 
+        @if (Challenge.CurrentStatus == "Actual")
+        {
+            <span>(days remaining: <span class="challenge-remaining">@remainingDays</span>)</span>
+        }  
+        else if (Challenge.CurrentStatus == "Expired")
+        {
+            <span>(expired)</span>
+        } 
+    </div>
+    <div class=@($"challenge-award award-{Challenge.Award.ToString().ToLower()}")>
+        <div class="challenge-award-header">
+            award
+        </div>
+        <div class="challenge-award-content">
+            @((int) Challenge.Award)
+        </div>
+    </div>
+    <div class="challenge-description">
+        <p class="challenge-place">
+            @Challenge.Description
+        </p>
+        <p class="challenge-area">
+            @Challenge.AreaName
+        </p>
+    </div>
+</div>
+
+<CreateUserInteraction Challenge="@Challenge" ModalId="@($"interaction-modal-{Challenge.Id}")" />
+
+@code {
+    [Parameter] public ChallengeDto Challenge { get; set; }
+    private double remainingDays = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        remainingDays = Challenge.DateEnd.Date.Subtract(DateTime.Today).TotalDays;
+    }
+}

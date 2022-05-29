@@ -1,0 +1,60 @@
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+@using PhotoChallenge.Domain.DTO.Area
+@using PhotoChallenge.Domain.DTO.User
+@using static System.Net.WebRequestMethods
+@inject IHttpClientFactory ClientFactory
+@inject HttpClient Http
+
+<div class="switch_area">
+    @if (selectedArea is not null)
+    {
+        <div class="@($"switch_area-header opened-{isOpen.ToString().ToLower()}")" @onclick="(() => { isOpen = !isOpen; })" @onclick:stopPropagation="true" @onfocusout="@(() => { Console.WriteLine("XXX"); isOpen = false; })">
+            @selectedArea.Name
+        </div>
+    }
+    @if (isOpen)
+    {
+        <div class="switch_area-options">
+            @foreach (var area in areas)
+            {
+                <div value="@area.Id" @onclick="((e) => ChangeArea(area.Id))" class="switch_area-option">
+                    @area.Name
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Action<int> SetSelectedArea { get; set; }
+    private List<AreaDto> areas = new List<AreaDto>();
+    private AreaDto selectedArea;
+    private bool isOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var client = ClientFactory.CreateClient("public");
+
+        areas = await client.GetFromJsonAsync<List<AreaDto>>("api/area/actual") ?? new List<AreaDto>();
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var userData = await Http.GetFromJsonAsync<UserDto>($"api/user");
+            selectedArea = userData?.DefaultAreaId is null || userData?.DefaultAreaId == 0 ? areas.First() : areas.SingleOrDefault(_ => _.Id == userData?.DefaultAreaId) ?? areas.First();
+        }
+        else
+        {
+            selectedArea = areas.First();
+        }
+        SetSelectedArea.Invoke(selectedArea.Id);
+    }
+
+    void ChangeArea(int areaId)
+    {
+        selectedArea = areas.SingleOrDefault(_ => _.Id == areaId);
+        isOpen = false;
+        SetSelectedArea.Invoke(areaId);
+    }
+}

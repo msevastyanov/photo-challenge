@@ -1,0 +1,94 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.UserInteraction
+@using PhotoChallenge.Domain.Enums
+@inject HttpClient Http
+
+<div class="interaction">
+    <div class="interaction-header">
+        <div class="interaction-status status-@Interaction.Status.ToString().ToLower()">
+            @Interaction.Status
+        </div>
+        <div class="interaction-period">
+            @Interaction.ChallengeStart.ToString("dd.MM.yyyy") – @Interaction.ChallengeEnd.ToString("dd.MM.yyyy") / @Interaction.Updated.ToString("dd.MM.yyyy, hh:mm")
+        </div>
+        <div class="interaction-actions">
+            <a class="interaction-btn" data-bs-toggle="modal" data-bs-target="#interaction-modal-@Interaction.Id">
+                Open
+            </a>
+        </div>
+    </div>
+    <div class="interaction-description">
+        @Interaction.UserName | @Interaction.Area: @Interaction.Description
+    </div>
+</div>
+
+<div class="modal fade" id="interaction-modal-@Interaction.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    <p class="modal-title-user">@Interaction.UserName (<span class="status-@Interaction.Status.ToString().ToLower()">@Interaction.Status</span>)</p>
+                    @Interaction.Area: @Interaction.Description
+                </h5>
+            </div>
+            <div class="modal-body">
+                <a href="@Constants.HostingAddress/uploads/@Interaction.Photo" target="_blank">
+                    <img src="@Constants.HostingAddress/uploads/@Interaction.Photo" alt="@Interaction.Photo" class="interaction-photo" />
+                </a>
+                @if (!string.IsNullOrEmpty(errorMsg))
+                {
+                    <p class="msg error-msg">
+                        @errorMsg
+                    </p>
+                }
+                @if (!string.IsNullOrEmpty(successMsg))
+                {
+                    <p class="msg success-msg">
+                        @successMsg
+                    </p>
+                }
+            </div>
+            <div class="modal-footer">
+                @if (Interaction.Status == UserInteractionStatus.Pending || Interaction.Status == UserInteractionStatus.Rejected)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="@(e => ChangeStatus(UserInteractionStatus.Approved))">Approve</button>
+                }
+                @if (Interaction.Status == UserInteractionStatus.Pending || Interaction.Status == UserInteractionStatus.Approved)
+                {
+                    <button type="button" class="btn btn-danger" @onclick="@(e => ChangeStatus(UserInteractionStatus.Rejected))">Reject</button>
+                }
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public UserInteractionDto Interaction { get; set; }
+    [Parameter] public Action<int, UserInteractionStatus> UpdateStatus { get; set; }
+    [Parameter] public Action<string> SetError { get; set; }
+    private string errorMsg = string.Empty;
+    private string successMsg = string.Empty;
+
+    private async Task ChangeStatus(UserInteractionStatus status)
+    {
+        errorMsg = string.Empty;
+        successMsg = string.Empty;
+
+        var response = await Http.PostAsJsonAsync("api/interaction/update", new UpdateUserInteractionDto
+            {
+                Id = Interaction.Id,
+                Status = status
+            });
+
+        if (!response.IsSuccessStatusCode)
+            errorMsg = await ResponseHelper.GetErrorMessageFromResponseAsync(response);
+        else
+        {
+            successMsg = "Status has been changed";
+            UpdateStatus.Invoke(Interaction.Id, status);
+        }
+    }
+}

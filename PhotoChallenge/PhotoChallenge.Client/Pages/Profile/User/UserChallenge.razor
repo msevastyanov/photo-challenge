@@ -1,0 +1,101 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.UserInteraction
+@using PhotoChallenge.Domain.Enums
+@inject HttpClient Http
+
+<div class="interaction">
+    <div class="interaction-header">
+        <div class="interaction-status status-@Interaction.Status.ToString().ToLower()">
+            @Interaction.Status
+        </div>
+        <div class="interaction-period">
+            @Interaction.ChallengeStart.ToString("dd.MM.yyyy") – @Interaction.ChallengeEnd.ToString("dd.MM.yyyy") / @Interaction.Updated.ToString("dd.MM.yyyy, hh:mm")
+        </div>
+        <div class="interaction-actions">
+            @if (!IsRemoved)
+            {
+                <a class="interaction-btn interaction-primary" data-bs-toggle="modal" data-bs-target="#interaction-modal-@Interaction.Id">
+                    Open
+                </a>
+                @if (@Interaction.Status == UserInteractionStatus.Pending)
+                {
+                    @if (!isDeleteMode)
+                    {
+                        <a @onclick="@(e => isDeleteMode = true)" class="interaction-btn interaction-delete">
+                            Delete
+                        </a>
+                    }
+                    else
+                    {
+                        <a @onclick="Delete" class="interaction-btn interaction-delete">
+                            Confirm deletion
+                        </a>
+                        <a @onclick="CancelDeleteion" class="interaction-btn interaction-default">
+                            Cancel deletion
+                        </a>
+                    }
+                }
+            }
+        </div>
+    </div>
+    <div class="interaction-description">
+        @Interaction.Area: @Interaction.Description
+    </div>
+    @if (IsRemoved)
+    {
+        <div class="removed">
+            Removed
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="interaction-modal-@Interaction.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    <p class="modal-title-user">@Interaction.UserName (<span class="status-@Interaction.Status.ToString().ToLower()">@Interaction.Status</span>)</p>
+                    @Interaction.Area: @Interaction.Description
+                </h5>
+            </div>
+            <div class="modal-body">
+                <a href="@Constants.HostingAddress/uploads/@Interaction.Photo" target="_blank">
+                    <img src="@Constants.HostingAddress/uploads/@Interaction.Photo" alt="@Interaction.Photo" class="interaction-photo" />
+                </a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public UserInteractionDto Interaction { get; set; }
+    [Parameter] public Action<int> DeleteInteraction { get; set; }
+    [Parameter] public Action<string> SetError { get; set; }
+    [Parameter] public bool IsRemoved { get; set; }
+    private bool isDeleteMode;
+    private string errorMsg = string.Empty;
+
+    private async Task Delete()
+    {
+        var response = await Http.PostAsync($"api/interaction/delete/{Interaction.Id}", null);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("))0");
+            SetError(await ResponseHelper.GetErrorMessageFromResponseAsync(response));
+        }
+        else
+            DeleteInteraction.Invoke(Interaction.Id);
+    }
+
+    private void CancelDeleteion()
+    {
+        isDeleteMode = false;
+        SetError(string.Empty);
+    }
+}

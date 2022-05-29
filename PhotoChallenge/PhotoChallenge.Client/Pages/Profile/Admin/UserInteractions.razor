@@ -1,0 +1,81 @@
+﻿@page "/admin/interactions"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PhotoChallenge.Client.Models
+@using PhotoChallenge.Domain.DTO.UserInteraction
+@using PhotoChallenge.Domain.Enums
+@layout ProfileLayout
+@attribute [Authorize(Roles = "Moderator, Admin")]
+@inject HttpClient Http
+
+<h1 class="page-title">
+    <span>
+        User interactions
+    </span>
+</h1>
+
+@if (!string.IsNullOrEmpty(errorMsg))
+{
+    <div class="page-error-msg">
+        @errorMsg
+    </div>
+}
+
+<UserInteractionFilter ChangeFilters="@SetFilters" />
+
+<div class="profile-scrolling-area-with-filters scrolling">
+    @foreach (var interaction in interactions.Where(_ =>
+    _.Status == UserInteractionStatus.Pending && filter.IsPending ||
+    _.Status == UserInteractionStatus.Approved && filter.IsApproved ||
+    _.Status == UserInteractionStatus.Rejected && filter.IsRejected).Where(challenge => filter.AreaId == 0 ? true : challenge.AreaId == filter.AreaId).OrderByDescending(_ => _.Created))
+    {
+        <UserInteraction Interaction="@interaction" UpdateStatus="@UpdateStatus" />
+    }
+</div>
+
+@code {
+    private List<UserInteractionDto> interactions = new List<UserInteractionDto>();
+    private UserInteractionFilterModel filter;
+    private string errorMsg = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            filter = new UserInteractionFilterModel
+                {
+                    IsPending = true,
+                    IsApproved = true,
+                    IsRejected = true,
+                    AreaId = 0
+                };
+            interactions = await Http.GetFromJsonAsync<List<UserInteractionDto>>("api/interaction") ?? new List<UserInteractionDto>();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void UpdateStatus(int id, UserInteractionStatus status)
+    {
+        var interactionToUpdate = interactions.SingleOrDefault(_ => _.Id == id);
+
+        if (interactionToUpdate is null)
+        {
+            errorMsg = "Interaction is not found";
+            return;
+        }
+
+        interactionToUpdate.Status = status;
+        errorMsg = string.Empty;
+
+        StateHasChanged();
+    }
+
+    private void SetFilters(UserInteractionFilterModel newFilter)
+    {
+        filter = newFilter;
+        StateHasChanged();
+    }
+}

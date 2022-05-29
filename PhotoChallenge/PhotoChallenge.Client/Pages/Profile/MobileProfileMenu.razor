@@ -1,0 +1,41 @@
+﻿<ul class="nav nav-pills mobile-profile-menu">
+    <li class="nav-item">
+        <NavLink class="nav-link" href="/profile/me">
+            <i class="fas fa-user"></i>
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="/profile/challenges">
+            <i class="fas fa-camera-retro"></i>
+        </NavLink>
+    </li>
+    <AuthorizeView Roles="Moderator, Admin">
+        <hr />
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/challenges">
+                <i class="fas fa-camera"></i>
+            </NavLink>
+        </li>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/interactions">
+                <i class="fas fa-check"></i>
+            </NavLink>
+        </li>
+    </AuthorizeView>
+    <AuthorizeView Roles="Admin">
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/users">
+                <i class="fas fa-users"></i>
+            </NavLink>
+        </li>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/admin/areas">
+                <i class="fas fa-city"></i>
+            </NavLink>
+        </li>
+    </AuthorizeView>
+</ul>
+
+@code {
+
+}

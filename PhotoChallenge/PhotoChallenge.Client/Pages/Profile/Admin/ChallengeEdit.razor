@@ -1,0 +1,219 @@
+﻿@page "/admin/challenges/{id}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Newtonsoft.Json
+@using PhotoChallenge.Client.Helpers
+@using PhotoChallenge.Domain.DTO.Area
+@using PhotoChallenge.Domain.DTO.Challenge
+@using PhotoChallenge.Domain.Enums
+@using PhotoChallenge.Domain.Models
+@layout ProfileLayout
+@attribute [Authorize(Roles = "Moderator, Admin")]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h1 class="page-title">
+    <span>
+        @title
+    </span>
+</h1>
+
+<div class="col-md-8 offset-md-2">
+    @if (challenge != null && editContext != null)
+    {
+        <EditForm class="form" EditContext="@editContext" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row g-2">
+                <div class="col-sm-4 col-6">
+                    <div class="form-floating">
+                        <InputDate id="dateStart" class="form-control" @bind-Value="challenge.DateStart" />
+                        <label for="dateStart" class="form-label">Date start</label>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-6">
+                    <div class="form-floating">
+                        <InputDate id="dateEnd" class="form-control" @bind-Value="challenge.DateEnd" />
+                        <label for="dateEnd" class="form-label">Date end</label>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-floating">
+                        <InputSelect id="award" class="form-control" @bind-Value="@challenge.Award">
+                            @foreach (var award in Enum.GetValues(typeof(ChallengeAward)))
+                            {
+                            <option value="@award">@award</option>
+                            }
+                    </InputSelect>
+                    <label for="award" class="form-label">Award</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-floating">
+            <InputTextArea id="description" class="form-control" @bind-Value="challenge.Description" />
+            <label for="description" class="form-label">Description</label>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-6">
+                <div class="form-floating">
+                    <InputSelect id="status" class="form-control" @bind-Value="challenge.Status">
+                        @foreach (var status in Enum.GetValues(typeof(ChallengeStatus)))
+                            {
+                            <option value="@status">@status</option>
+                            }
+                    </InputSelect>
+                    <label for="status" class="form-label">Status</label>
+                </div>
+            </div>
+
+            <div class="col-6">
+                @if (Id == "new")
+                    {
+                        <div class="form-floating">
+                            <InputSelect id="area" class="form-control" @bind-Value="challenge.AreaId">
+                                @foreach (var area in areas)
+                                {
+                            <option value="@area.Id">@area.Name</option>
+                                }
+                    </InputSelect>
+                    <label for="area" class="form-label">Area</label>
+                </div>
+                    }
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(statusWarning))
+            {
+                <p class="form-msg">
+                    @statusWarning
+                </p>
+            }
+
+            @if (!isInitialDraft && !isCurrentDraft)
+            {
+                <p class="form-msg">
+                    'Description' and 'Award' fields won't be changed
+                </p>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMsg))
+            {
+                <p class="error-msg">
+                    @errorMsg
+                </p>
+            }
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary form-btn">
+                    Save
+                </button>
+                <NavLink class="btn btn-secondary form-btn" href="/admin/challenges">
+                    Back
+                </NavLink>
+            </div>
+        </EditForm>
+    }
+    else if (loadFailed)
+    {
+        <div class="page-error-msg">
+            Error getting a challenge
+        </div>
+    }
+    else
+    {
+        <p>
+            Loading data...
+        </p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    private EditContext editContext;
+    private ChallengeDto challenge;
+    private List<AreaDto> areas = new List<AreaDto>();
+    private string title;
+    private bool loadFailed = false;
+    private string statusWarning = GetStatusWarning(ChallengeStatus.Draft.ToString());
+    private string errorMsg = string.Empty;
+    private bool isInitialDraft = false;
+    private bool isCurrentDraft = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == "new")
+        {
+            challenge = new ChallengeDto
+                {
+                    Status = ChallengeStatus.Draft,
+                    DateStart = DateTime.Now,
+                    DateEnd = DateTime.Now.AddDays(7),
+                    Award = ChallengeAward.Bronze
+                };
+            areas = await Http.GetFromJsonAsync<List<AreaDto>>("api/area") ?? new List<AreaDto>();
+            title = "New challenge";
+            isInitialDraft = true;
+
+            editContext = new EditContext(challenge);
+            editContext.OnFieldChanged += EditContext_OnFieldChanged;
+
+            return;
+        }
+
+        try
+        {
+            challenge = await Http.GetFromJsonAsync<ChallengeDto>($"api/challenge/{Id}");
+            isInitialDraft = challenge?.Status == ChallengeStatus.Draft;
+            statusWarning = GetStatusWarning(challenge.Status.ToString());
+            title = $"Challenge: {challenge?.DateStart.ToString("dd.MM.yyyy")} – {challenge?.DateEnd.ToString("dd.MM.yyyy")}";
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+        catch (Exception)
+        {
+            loadFailed = true;
+        }
+
+        editContext = new EditContext(challenge);
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.FieldName == "Status")
+        {
+            statusWarning = GetStatusWarning(challenge.Status.ToString());
+            isCurrentDraft = challenge?.Status == ChallengeStatus.Draft;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = Id == "new" ? await Http.PostAsJsonAsync(
+                    "api/challenge", challenge)
+                    : await Http.PostAsJsonAsync<ChallengeDto>(
+                    "api/challenge/update", challenge);
+
+        if (!response.IsSuccessStatusCode)
+            errorMsg = await ResponseHelper.GetErrorMessageFromResponseAsync(response);
+        else
+            NavigationManager.NavigateTo("/admin/challenges");
+    }
+
+    private static string GetStatusWarning(string value)
+    {
+        return value switch
+        {
+            "Draft" => "Users cannot interact with 'draft' challenges",
+            "Live" => "'Live' challenges with user interactions cannot to become 'draft' again",
+            "Removed" => "Users cannot interact with 'removed' challenges. 'Removed' challenges are not displayed in the public challenges list",
+            _ => "Unkown challenge status"
+        };
+    }
+}
